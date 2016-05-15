@@ -1,5 +1,5 @@
 # WebDriverChess
-How about a nice game of chess? Pit webdriver supporting user agents against each other.
+How about a nice game of chess? Pit [webdriver supporting user agents](http://docs.seleniumhq.org/download/) against each other.
 
 ![alt text](https://raw.githubusercontent.com/david-risney/WebDriverChess/master/example.gif "Example of Edge and Chrome playing chess together via WebDriverChess.")
 
