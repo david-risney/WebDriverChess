@@ -53,6 +53,10 @@
         return arr;
     }
 
+    function verifyResponse(response) {
+        return response.status === 0 || response.status === undefined;
+    }
+
     var logifyPromiseFunction = function (promiseFn, name) {
         return function () {
             console.log("Promise " + name + " start");
@@ -143,7 +147,7 @@
                 },
                 "requiredCapabilities": {}
             }).then(function (result) {
-                if (result.status === 0) {
+                if (verifyResponse(result)) {
                     player.sessionId = result.sessionId;
                     player.name = result.value.browserName;
                     console.log("Updated player " + JSON.stringify(player));
@@ -171,7 +175,7 @@
                 script: script,
                 args: args
             }).then(function (response) {
-                if (response.status === 0) {
+                if (verifyResponse(response)) {
                     return response.value;
                 }
                 else {
@@ -192,7 +196,7 @@
                 script: script,
                 args: args
             }).then(function (response) {
-                if (response.status === 0) {
+                if (verifyResponse(response)) {
                     return response.value;
                 }
                 else {
@@ -205,7 +209,7 @@
                 type: type,
                 ms: ms
             }).then(function (response) {
-                if (response.status === 0) {
+                if (verifyResponse(response)) {
                     return response.value;
                 }
                 else {
