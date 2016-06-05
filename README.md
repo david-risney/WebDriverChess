@@ -26,7 +26,13 @@ IE 11.306.10586 | 7
 None | 5
 Chrome  51.0.2704.79m | 4
 
-The AI in SimpleChess is StockFish which is asm.js based. Accordingly the browsers with full asm.js support, Edge and Firefox, have a distinct advantage. Otherwise the amount of time the AI gets is fixed so the faster a browser runs the better it should perform. I did not expect IE 11 to do better than Chrome but I've rerun several times and get similar results. None means the match resulted in a draw.
+The AI in SimpleChess is StockFish which is asm.js based. Accordingly the browsers with full asm.js support, Edge and Firefox, have a distinct advantage. Otherwise the amount of time the AI gets is fixed so the faster a browser runs the better it should perform.
+
+I did not expect IE 11 to do better than Chrome but I've rerun several times and get similar results.
+
+None means the match resulted in a draw.
+
+I used the Firefox Nightly build because the normal release build didn't work with their webdriver executable.
 
 The results of the individual matches:
 
