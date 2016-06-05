@@ -215,11 +215,11 @@
 
             gameOptions.players = [];
             gameOptions.players.push({
-                name: gameOptions.p0Name || "white",
+                name: (gameOptions.p0Name && decodeURIComponent(gameOptions.p0Name)) || "white",
                 type: gameOptions.p0Type || "human"
             });
             gameOptions.players.push({
-                name: gameOptions.p1Name || "black",
+                name: (gameOptions.p1Name && decodeURIComponent(gameOptions.p1Name)) || "black",
                 type: gameOptions.p1Type || "random"
             });
             return gameOptions;

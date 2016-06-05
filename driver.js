@@ -4,7 +4,9 @@
     var http = require("http");
     var url = require("url");
     var plyTimeInSeconds = 50;
-    var verboseOut = false;
+    var debug = false;
+
+    console.verbose = !debug ? function () { } : function (msg) { console.log(msg); };
 
     function Deferral() {
         var that = this;
@@ -59,7 +61,7 @@
 
     var logifyPromiseFunction = function (promiseFn, name) {
         return function () {
-            console.log("Promise " + name + " start");
+            console.verbose("Promise " + name + " start");
             var result = promiseFn.apply(this, arrayFrom(arguments));
 
             return result.then(function (completionResult) {
@@ -71,7 +73,7 @@
                     catch (e) { }
                 }
 
-                console.log("Promise " + name + " done (" + stringifiedResult + ")");
+                console.verbose("Promise " + name + " done (" + stringifiedResult + ")");
                 return completionResult;
             }, function (errorResult) {
                 var stringifiedResult = errorResult;
@@ -82,7 +84,7 @@
                     catch (e) { }
                 }
 
-                console.log("Promise " + name + " error (" + errorResult + ")");
+                console.verbose("Promise " + name + " error (" + errorResult + ")");
                 throw errorResult;
             });
         };
@@ -107,19 +109,17 @@
         }
         var request = http.request(options);
         if (stringBody) {
-            if (verboseOut) {
-                console.log("httpRequestAsync " + stringUrl + " " + stringBody);
-            }
+            console.verbose("httpRequestAsync " + stringUrl + " " + stringBody);
             request.write(stringBody);
         } else {
-            console.log("httpRequestAsync " + stringUrl);
+            console.verbose("httpRequestAsync " + stringUrl);
         }
 
         request.end();
 
         request.on("abort", function () {
             deferral.reject();
-            console.log("httpRequestAsync failure");
+            console.verbose("httpRequestAsync failure");
         });
 
         request.on("response", function (response) {
@@ -129,7 +129,7 @@
             });
             response.on("end", function () {
                 deferral.resolve(JSON.parse(collectedResponse));
-                console.log("httpRequestAsync success");
+                console.verbose("httpRequestAsync success");
             });
         });
 
@@ -150,7 +150,7 @@
                 if (verifyResponse(result)) {
                     player.sessionId = result.sessionId;
                     player.name = result.value.browserName;
-                    console.log("Updated player " + JSON.stringify(player));
+                    console.verbose("Updated player " + JSON.stringify(player));
                 }
                 else {
                     throw new Error("New session error: " + JSON.stringify(result));
@@ -162,14 +162,15 @@
                 url: uri
             });
         }, "getAsync"),
+        close: logifyPromiseFunction(function (player) {
+            return httpRequestAsync("DELETE", player.uri + "/session/" + player.sessionId);
+        }),
         executeScriptAsync: logifyPromiseFunction(function (player, script, args) {
             if (!args) {
                 args = [];
             }
 
-            if (verboseOut) {
-                console.log("executeScriptAsync " + player.name + " " + script + "\n");
-            }
+            console.verbose("executeScriptAsync " + player.name + " " + script + "\n");
 
             return httpRequestAsync("POST", player.uri + "/session/" + player.sessionId + "/execute", {
                 script: script,
@@ -188,9 +189,7 @@
                 args = [];
             }
 
-            if (verboseOut) {
-                console.log("executeScriptAsyncAsync " + player.name + " " + script + "\n");
-            }
+            console.verbose("executeScriptAsyncAsync " + player.name + " " + script + "\n");
 
             return httpRequestAsync("POST", player.uri + "/session/" + player.sessionId + "/execute_async", {
                 script: script,
@@ -236,9 +235,7 @@
             var previousPlayer = this.getCurrentPlayer();
             ++moveCount;
             var newPlayer = this.getCurrentPlayer();
-            if (verboseOut) {
-                console.log("Changing player from " + previousPlayer.name + " to " + newPlayer.name);
-            }
+            console.verbose("Changing player from " + previousPlayer.name + " to " + newPlayer.name);
         }).bind(this);
     })();
 
@@ -297,12 +294,12 @@
         }
 
         function plyAsync(moveInJson) {
-            console.log("Getting move from player...");
+            console.verbose("Getting move from player...");
             return webDriverCommand.executeScriptAsyncAsync(
                 turnState.getCurrentPlayer(),
                 "return (" + injectAndWait.toString() + ")(" + (moveInJson || null) + ", arguments[0]);"
             ).then(function (nextMoveInJson) {
-                console.log("Got move: " + nextMoveInJson);
+                console.verbose("Got move: " + nextMoveInJson);
                 turnState.incrementMove();
                 return nextMoveInJson;
             });
@@ -315,8 +312,11 @@
                     return plyLoopAsync(nextMoveInJson);
                 }
                 else {
-                    console.log("Gove gameover");
+                    console.verbose("Got gameover");
+                    // Intentionally not returning this promise to break
+                    // the cycle...
                     plyAsync(nextMoveInJson);
+                    return nextMove.gameOver;
                 }
             });
         }
@@ -328,10 +328,12 @@
         }
     })();
 
-    simpleChess.playGameAsync().then(function () {
-        console.log("game complete.");
+    simpleChess.playGameAsync().then(function (gameResult) {
+        console.log("game complete: " + gameResult);
+        process.exit(0);
     }, function (error) {
         console.log("game failed: " + error);
+        process.exit(1);
     });
 
 })(this);
